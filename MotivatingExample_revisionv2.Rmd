@@ -1,7 +1,7 @@
 ---
 title: "Companion code: Toward an improved understanding of causation in the ecological sciences"
 author: "Ethan Addicott"
-date: "March 9, 2021"
+date: "April 27, 2021"
 output: 
   rmdformats::material:
       code_folding: hide
@@ -47,9 +47,9 @@ There is a residual unexplained error, $\eta$, that is normally distributed with
 
 ```{r Simulating the Dataset, set.seed(1), class.source = 'fold-show', cache = TRUE}
 # Initialize Parameters and Simulate Data
-n <- 1000 # number of data points to construct
+n <- 10000 # number of data points to construct
 error.var.1 <- 0.01 # variance of the idiosyncratic error term
-error.var.2 <- 0.2 # variance of error process for measurements of catch
+error.var.2 <- 0.1 # variance of error process for measurements of catch
 true.beta <- 0.5 # coefficient on food availability term
 true.gamma <- -0.08 # coefficient on fishing effort term
 
@@ -57,7 +57,10 @@ true.gamma <- -0.08 # coefficient on fishing effort term
 food <- (sample.int(101, size = n, replace = TRUE) + 50) / 200
 
 # Sample fishing effort data similarly
-effort <- (sample.int(101, size = n, replace = TRUE) - 1) / 100
+effort <- (sample.int(201, size = n, replace = TRUE) - 1) / 100
+
+# # Introduce multicollinearity
+# food <- food+ 0.25*effort
 
 # Sample fishing net data that will be used later for the IV approach
 nets <- (sample.int(201, size = n, replace = TRUE) - 1) / 100
@@ -70,8 +73,7 @@ error.normal2 <- rnorm(n, 0, error.var.2)
 logpopgrowth <- true.beta * food + true.gamma * effort + error.normal 
 
 # Define data generating process for the measure of observed catch from fishing
-catch <- effort * (1+ sqrt(2 * logpopgrowth)) + 
-         2 * sqrt(logpopgrowth) + nets / 5 + error.normal2
+catch <- effort + 5*effort * exp(1.2*logpopgrowth) + nets / 3 + error.normal2
 ```
 
 ## Interactive Data Table
@@ -147,15 +149,15 @@ df.md1 <- data.frame(cbind(obs, beta.1, gamma.1))
 
 beta1plot <- ggplot(df.md1, aes(x = obs, y = beta.1)) +
   geom_line() +
-  annotate("segment", x = 0, xend = 1010, y = true.beta, yend = true.beta, linetype = "dashed") +
+  annotate("segment", x = 0, xend = n*1.01, y = true.beta, yend = true.beta, linetype = "dashed") +
   theme_classic() +
   theme(text = element_text(size = 17)) +
   xlab("Observations") +
   ylab(expression(beta * ": Estimate of food parameter")) +
-  scale_x_continuous(expand = c(0, 0), limits = c(0, 1100)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, n*1.1)) +
   scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.6)) +
-  annotate("segment", x = 1010, xend = 1010, y = true.beta, yend = beta.1[960], colour = "red", size = 1, arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm"))) +
-  annotate("text", label = "Bias", x = 960, y = (beta.1[960] + true.beta) / 2, angle = 90, size = 5)
+  annotate("segment", x = n*1.01, xend = n*1.01, y = true.beta, yend = beta.1[n-40], colour = "red", size = 1, arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm"))) +
+  annotate("text", label = "Bias", x = n-40, y = (beta.1[n-40] + true.beta) / 2, angle = 90, size = 5)
 
 beta2plot <- ggplot(df.md1, aes(x = obs, y = gamma.1)) +
   geom_line(position = "identity") +
@@ -163,13 +165,13 @@ beta2plot <- ggplot(df.md1, aes(x = obs, y = gamma.1)) +
   theme(text = element_text(size = 17)) +
   xlab("Observations") +
   ylab(expression(gamma * ": Estimate of catch parameter")) +
-  annotate("segment", x = 0, xend = 1010, y = -0.08, yend = -0.08, linetype = "dashed") +
-  scale_x_continuous(expand = c(0, 0), limits = c(0, 1100)) +
+  annotate("segment", x = 0, xend = n*1.01, y = -0.08, yend = -0.08, linetype = "dashed") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, n*1.1)) +
   scale_y_continuous(expand = c(0, 0), limits = c(-.1, 0), breaks = c(-0.1, -0.08, -0.06, -0.04, -0.02, 0)) +
   annotate("segment",
-    x = 1010, xend = 1010, y = true.gamma, yend = gamma.1[960],
+    x = 1.01*n, xend = 1.01*n, y = true.gamma, yend = gamma.1[n-40],
     colour = "red", size = 1, arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm"))) +
-  annotate("text", label = "Bias", size = 5, x = 960, y = (gamma.1[960] + true.gamma) / 2, angle = 90)
+  annotate("text", label = "Bias", size = 5, x = n-40, y = (gamma.1[n-40] + true.gamma) / 2, angle = 90)
 
 cowplot::plot_grid(beta1plot, beta2plot, labels = c("a", "b"))
 # ggsave("Addicott_Figure2.png", width = 10, height = 5)
