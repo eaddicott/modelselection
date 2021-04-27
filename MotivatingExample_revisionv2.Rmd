@@ -47,7 +47,7 @@ There is a residual unexplained error, $\eta$, that is normally distributed with
 
 ```{r Simulating the Dataset, set.seed(1), class.source = 'fold-show', cache = TRUE}
 # Initialize Parameters and Simulate Data
-n <- 10000 # number of data points to construct
+n <- 1000 # number of data points to construct
 error.var.1 <- 0.01 # variance of the idiosyncratic error term
 error.var.2 <- 0.1 # variance of error process for measurements of catch
 true.beta <- 0.5 # coefficient on food availability term
@@ -73,7 +73,7 @@ error.normal2 <- rnorm(n, 0, error.var.2)
 logpopgrowth <- true.beta * food + true.gamma * effort + error.normal 
 
 # Define data generating process for the measure of observed catch from fishing
-catch <- effort + 5*effort * exp(1.2*logpopgrowth) + nets / 3 + error.normal2
+catch <- effort + effort * exp(1.2*logpopgrowth) + nets / 3 + error.normal2
 ```
 
 ## Interactive Data Table
@@ -228,22 +228,30 @@ Notice that this model does not fit the data as well as Model 1, but it does pro
 ```{r}
 # Replicating Figure 2 from the main text
 beta.2 <- rep(NA, n - 39)
+beta.2.low <- rep(NA, n - 39)
+beta.2.high <- rep(NA, n - 39)
 
 for (j in 40:n) {
   md <- lm(Log.Pop.Growth ~ Food.Avail, data = df[1:j, ])
   beta.2[j - 39] <- coefficients(md)[[2]]
+  beta.2.low[j - 39] <- confint(md)[2, 1]
+  beta.2.high[j - 39] <- confint(md)[2, 2]
 }
-df.md2 <- data.frame(cbind(obs, beta.2))
 
-ggplot(df.md2, aes(x = obs, y = beta.2)) +
-  geom_line() +
+df.md2 <- data.frame(cbind(obs, beta.2, beta.2.low, beta.2.high))
+
+ggplot(df.md2) +
+  geom_line(aes(x = obs, y = beta.2)) +
+  geom_line(
+  aes(x=obs, y = beta.2.low),  linetype = "dashed") +
+  geom_line(aes(x=obs, y=beta.2.high), linetype = "dashed")+
   annotate("segment", x = 0, xend = 1010, y = true.beta, yend = true.beta, linetype = "dashed") +
   theme_classic() +
   theme(text = element_text(size = 17)) +
   xlab("Observations") +
   ylab(expression(beta * ": Estimate of food parameter")) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1100)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.6)) 
+  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.75)) 
 ```
 
 # Model 3: Instrumental Variables Model
@@ -307,7 +315,7 @@ ggplot(df3) +
   xlab("Observations") +
   ylab(expression(beta * ": Estimate of food parameter")) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1050)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.6)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.75)) +
   theme(text = element_text(size = 18))
 # ggsave("Addicott_Figure5.png", width = 10, height = 5)
 ```
