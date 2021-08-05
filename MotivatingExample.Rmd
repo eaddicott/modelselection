@@ -131,7 +131,7 @@ ggplot(df1.melt, aes(x = Food, y = logpopgrowth, shape = Type)) +
   theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Food availability") +
   ylab("Log population growth rate")
-ggsave("Addicott_Figure4_v3.png", width = 10, height = 5)
+ggsave("images/Addicott_Figure4_v3.png", width = 10, height = 5)
 ```
 
 With the larger sample the estimates are more precise, but the confidence interval still excludes the true value. The estimates from Model 1 are biased.
@@ -176,7 +176,7 @@ beta2plot <- ggplot(df.md1, aes(x = obs, y = gamma.1)) +
   annotate("text", label = "Bias", size = 5, x = n-40, y = (gamma.1[n-40] + true.gamma) / 2, angle = 90)
 
 cowplot::plot_grid(beta1plot, beta2plot, labels = c("a", "b"))
-ggsave("Addicott_Figure2_v3.png", width = 10, height = 5)
+ggsave("imagesAddicott_Figure2_v3.png", width = 10, height = 5)
 ```
 
 ### Multicollinearity and Variance Inflation
@@ -210,7 +210,7 @@ ggplot(df1, aes(x = Predicted, y = Actual - Predicted)) +
   theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Fitted") +
   ylab("Residuals")
-ggsave("Addicott_Figure3_v3.png", width = 10, height = 5)
+ggsave("images/Addicott_Figure3_v3.png", width = 10, height = 5)
 ```
 
 The observer may see the slight hump in the residuals, but the trend is not obvious.
@@ -321,7 +321,7 @@ ggplot(df3) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1050)) +
   scale_y_continuous(expand = c(0, 0), limits = c(0.325, 0.75)) +
   theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black"))
-ggsave("Addicott_Figure5_v3.png", width = 10, height = 5)
+ggsave("images/Addicott_Figure5_v3.png", width = 10, height = 5)
 ```
 
 And we can look at the residuals vs fitted plot to see that the error is resolved of obvious heteroskedasticity.
