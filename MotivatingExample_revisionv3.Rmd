@@ -73,7 +73,7 @@ error.normal2 <- rnorm(n, 0, error.var.2)
 logpopgrowth <- true.beta * food + true.gamma * effort + error.normal 
 
 # Define data generating process for the measure of observed catch from fishing
-catch <- effort + effort * exp(1.2*logpopgrowth) +0.3 * nets + error.normal2
+catch <- effort + effort * 5*logpopgrowth +0.3 * nets + error.normal2
 ```
 
 ## Interactive Data Table
@@ -128,10 +128,10 @@ ggplot(df1.melt, aes(x = Food, y = logpopgrowth, shape = Type)) +
   scale_shape_manual(values = c("Actual" = 4, "Predicted" = 1)) +
   scale_colour_manual(values = c("Actual" = "black", "Predicted" = "red")) +
   theme_classic() +
-  theme(text = element_text(size = 18)) +
+  theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Food availability") +
   ylab("Log population growth rate")
-# ggsave("Addicott_Figure4.png", width = 10, height = 5)
+ggsave("Addicott_Figure4_v3.png", width = 10, height = 5)
 ```
 
 With the larger sample the estimates are more precise, but the confidence interval still excludes the true value. The estimates from Model 1 are biased.
@@ -153,18 +153,18 @@ beta1plot <- ggplot(df.md1, aes(x = obs, y = beta.1)) +
   geom_line() +
   annotate("segment", x = 0, xend = n*1.01, y = true.beta, yend = true.beta, linetype = "dashed") +
   theme_classic() +
-  theme(text = element_text(size = 17)) +
+  theme(text = element_text(size = 17), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Observations") +
   ylab(expression(beta * ": Estimate of food parameter")) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, n*1.1)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.6)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.7)) +
   annotate("segment", x = n*1.01, xend = n*1.01, y = true.beta, yend = beta.1[n-40], colour = "red", size = 1, arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm"))) +
   annotate("text", label = "Bias", x = n-40, y = (beta.1[n-40] + true.beta) / 2, angle = 90, size = 5)
 
 beta2plot <- ggplot(df.md1, aes(x = obs, y = gamma.1)) +
   geom_line(position = "identity") +
   theme_classic() +
-  theme(text = element_text(size = 17)) +
+  theme(text = element_text(size = 17), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Observations") +
   ylab(expression(gamma * ": Estimate of catch parameter")) +
   annotate("segment", x = 0, xend = n*1.01, y = -0.08, yend = -0.08, linetype = "dashed") +
@@ -176,7 +176,7 @@ beta2plot <- ggplot(df.md1, aes(x = obs, y = gamma.1)) +
   annotate("text", label = "Bias", size = 5, x = n-40, y = (gamma.1[n-40] + true.gamma) / 2, angle = 90)
 
 cowplot::plot_grid(beta1plot, beta2plot, labels = c("a", "b"))
-# ggsave("Addicott_Figure2.png", width = 10, height = 5)
+ggsave("Addicott_Figure2_v3.png", width = 10, height = 5)
 ```
 
 ### Multicollinearity and Variance Inflation
@@ -207,10 +207,10 @@ ggplot(df1, aes(x = Predicted, y = Actual - Predicted)) +
   geom_point() +
   theme_classic() +
   geom_smooth(se = FALSE) +
-  theme(text = element_text(size = 18)) +
+  theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Fitted") +
   ylab("Residuals")
-# ggsave("Addicott_Figure3.png", width = 10, height = 5)
+ggsave("Addicott_Figure3_v3.png", width = 10, height = 5)
 ```
 
 The observer may see the slight hump in the residuals, but the trend is not obvious.
@@ -250,7 +250,7 @@ ggplot(df.md2) +
   geom_line(aes(x=obs, y=beta.2.high), linetype = "dashed")+
   annotate("segment", x = 0, xend = 1010, y = true.beta, yend = true.beta, linetype = "dashed") +
   theme_classic() +
-  theme(text = element_text(size = 17)) +
+  theme(text = element_text(size = 17), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Observations") +
   ylab(expression(beta * ": Estimate of food parameter")) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1100)) +
@@ -291,7 +291,7 @@ This can also be accomplished using the IV estimator instead of two-stage least 
 ```{r iv estimator, class.show='fold-source'}
 library(AER)
 ivreg.md3 <- ivreg(Log.Pop.Growth ~ Catch + Food.Avail 
-                  | Nets + Food.Avail, data = df)
+                  | Nets + Food.Avail, data = df, x=TRUE)
 tab_model(ivreg.md3, show.aic=TRUE)
 summary(ivreg.md3)
 ```
@@ -319,9 +319,9 @@ ggplot(df3) +
   xlab("Observations") +
   ylab(expression(beta * ": Estimate of food parameter")) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1050)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0.4, 0.75)) +
-  theme(text = element_text(size = 18))
-# ggsave("Addicott_Figure5.png", width = 10, height = 5)
+  scale_y_continuous(expand = c(0, 0), limits = c(0.325, 0.75)) +
+  theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black"))
+ggsave("Addicott_Figure5_v3.png", width = 10, height = 5)
 ```
 
 And we can look at the residuals vs fitted plot to see that the error is resolved of obvious heteroskedasticity.
@@ -334,7 +334,7 @@ ggplot(df_iv, aes(x = Predicted, y = Residual)) +
   geom_point() +
   theme_classic() +
   geom_smooth(se = FALSE) +
-  theme(text = element_text(size = 18)) +
+  theme(text = element_text(size = 18), axis.text.x=element_text(colour="black"), axis.text.y=element_text(colour="black")) +
   xlab("Fitted") +
   ylab("Residuals")
 ```
@@ -365,3 +365,4 @@ In the example, adding catch improves fit and AIC, but also introduces a confoun
 All three models fit the distribution of outcomes well, but the mis-specified model, Model 1, produces an outcome distribution closer to the data. The result highlights AIC's value for assessing model fit; however, inference that extends beyond fit and into the realm of causal inference is unsupported by IC without additional lines of evidence.
 
 Information-criterion approaches can lend weight to the wrong model with parameter estimates that miss the mark with high confidence across all explanatory variables. Since most research endeavors are aimed at exploring outcomes and the processes that generate them, information criteria should be used with care.
+
